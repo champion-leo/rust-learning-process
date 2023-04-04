@@ -1,10 +1,15 @@
+use colored::Colorize;
 const THREE_HOURS_IN_MILLISECONDS: u32 = 3 * 60 * 60 * 1000;
 
 fn main() {
-    println!("Mutable:");
+    print_title("Mutability:");
     mutable();
-    println!("Constant:");
+    print_title("Constant:");
     println!("{THREE_HOURS_IN_MILLISECONDS}");
+}
+
+fn print_title(title: &str) {
+    println!("{}", title.bold().green());
 }
 
 fn mutable() {
