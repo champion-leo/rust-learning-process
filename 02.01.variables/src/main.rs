@@ -1,5 +1,10 @@
+const THREE_HOURS_IN_MILLISECONDS: u32 = 3 * 60 * 60 * 1000;
+
 fn main() {
+    println!("Mutable:");
     mutable();
+    println!("Constant:");
+    println!("{THREE_HOURS_IN_MILLISECONDS}");
 }
 
 fn mutable() {
