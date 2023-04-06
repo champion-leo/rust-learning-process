@@ -1,9 +1,3 @@
-struct User {
-    active: bool,
-    username: String,
-    email: String,
-    sign_in_count: u64,
-}
 
 fn main() {
     let mut user1 = User {
@@ -30,11 +24,21 @@ fn main() {
     struct_tuple();
 
     unit_struct();
+
+    concrete_example();
 }
 
 /*
  * Defining and Instantiating Structs
  */
+
+ struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+
 
 fn build_user(email: String, username: String) -> User {
     User {
@@ -85,6 +89,37 @@ fn unit_struct() {
     let subject = AlwaysEqual;
 }
 
-/**
- * ownership of struct data: https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#ownership-of-struct-data
+// ownership of struct data: https://doc.rust-lang.org/stable/book/ch05-01-defining-structs.html#ownership-of-struct-data
+
+
+/*
+ * Concrete example
  */
+
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn concrete_example() {
+    let scale = 2;
+    let rect1 = Rectangle {
+        width: dbg!(30 * scale),
+        height: 50,
+    };
+
+    println!(
+        "The area of the rectangle is {} square pixels.",
+        area(&rect1)
+    );
+
+    println!("rect1 with {{:#?}}: {:#?}", rect1);
+    println!("rect1 with {{:?}}: {:?}", rect1);
+    // USE reference because dbg! macro is borrowing the parameter
+    dbg!(&rect1);
+}
+
+fn area(rectangle: &Rectangle) -> u32 {
+    rectangle.width * rectangle.height
+}
