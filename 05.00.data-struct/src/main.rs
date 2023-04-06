@@ -15,7 +15,7 @@ fn main() {
     let user2 = build_user(String::from("hello@gmail.com"), String::from("hello"));
     println!("Build user: {}", user2.username);
 
-    let user3 = build_user_shortand_syntaxe(String::from("shortand@gmail.com"), String::from("shortand"));
+    let user3 = build_user_shortand_syntax(String::from("shortand@gmail.com"), String::from("shortand"));
     println!("Build user shortand: {}", user3.username);
 
     let user4 = create_user_from_another();
@@ -49,7 +49,7 @@ fn build_user(email: String, username: String) -> User {
     }
 }
 
-fn build_user_shortand_syntaxe(email: String, username: String) -> User {
+fn build_user_shortand_syntax(email: String, username: String) -> User {
     User {
         active: true,
         username,
@@ -102,6 +102,33 @@ struct Rectangle {
     height: u32,
 }
 
+// area function is outside of the Rectangle struct
+fn area(rectangle: &Rectangle) -> u32 {
+    rectangle.width * rectangle.height
+}
+// area function (method) is inside of the Rectangle struct
+impl Rectangle {
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    fn increase(&mut self, width: u32, height: u32) {
+        self.width += width;
+        self.height += height;
+    }
+
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+
+    fn create(size: u32) -> Self {
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+
 fn concrete_example() {
     let scale = 2;
     let rect1 = Rectangle {
@@ -118,8 +145,18 @@ fn concrete_example() {
     println!("rect1 with {{:?}}: {:?}", rect1);
     // USE reference because dbg! macro is borrowing the parameter
     dbg!(&rect1);
+    println!("react area from the method: {}", rect1.area());
+
+    let mut rect2 = Rectangle {
+        width: 30,
+        height: 30,
+    };
+    println!("rect2 before increase: {:#?}", rect2);
+    rect2.increase(10, 10);
+    println!("rect2 after increase: {:#?}", rect2);
+
+    println!("Can rect1 hold rect2? {}", rect1.can_hold(&rect2));
+
+    println!("Create square: {:#?}", Rectangle::create(10));
 }
 
-fn area(rectangle: &Rectangle) -> u32 {
-    rectangle.width * rectangle.height
-}
