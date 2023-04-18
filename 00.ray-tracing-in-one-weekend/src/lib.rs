@@ -3,6 +3,25 @@ pub struct Vec3 {
     values: (f64, f64, f64),
 }
 
+impl std::fmt::Display for Vec3 {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{} {} {}", self.values.0, self.values.1, self.values.2)
+    }
+}
+
+#[cfg(test)]
+mod tests_vec3_display {
+    use super::*;
+
+    #[test]
+    fn test_vec3_display() {
+        let v = Vec3 {
+            values: (1.1, 2.0, 3.0),
+        };
+        assert_eq!(format!("{}", v), "1.1 2 3");
+    }
+}
+
 // Accessors
 impl Vec3 {
     fn x(&self) -> &f64 {
