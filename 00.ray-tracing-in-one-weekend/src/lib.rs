@@ -1,5 +1,5 @@
-#[derive(Debug)]
-struct Vec3 {
+#[derive(Debug, Copy, Clone)]
+pub struct Vec3 {
     values: (f64, f64, f64),
 }
 
@@ -131,8 +131,6 @@ mod tests_vec3_length {
     }
 }
 
-
-
 use std::ops;
 
 impl ops::Neg for Vec3 {
@@ -166,7 +164,6 @@ impl ops::AddAssign for Vec3 {
     }
 }
 
-
 impl ops::MulAssign<f64> for Vec3 {
     fn mul_assign(&mut self, _rhs: f64) {
         self.values.0 *= _rhs;
@@ -182,7 +179,7 @@ impl ops::DivAssign<f64> for Vec3 {
 }
 
 #[cfg(test)]
-mod tests_vec3_std_ops {
+mod tests_vec3_std_ops_self {
     use super::*;
     #[test]
     fn test_neg() {
@@ -258,5 +255,225 @@ mod tests_vec3_std_ops {
             values: (1.0, 2.0, 3.0),
         };
         v[3];
+    }
+}
+
+impl ops::Add for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, _rhs: Vec3) -> Vec3 {
+        Vec3 {
+            values: (
+                self.values.0 + _rhs.values.0,
+                self.values.1 + _rhs.values.1,
+                self.values.2 + _rhs.values.2,
+            ),
+        }
+    }
+}
+
+impl ops::Sub for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, _rhs: Vec3) -> Vec3 {
+        Vec3 {
+            values: (
+                self.values.0 - _rhs.values.0,
+                self.values.1 - _rhs.values.1,
+                self.values.2 - _rhs.values.2,
+            ),
+        }
+    }
+}
+
+impl ops::Mul for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, _rhs: Vec3) -> Vec3 {
+        Vec3 {
+            values: (
+                self.values.0 * _rhs.values.0,
+                self.values.1 * _rhs.values.1,
+                self.values.2 * _rhs.values.2,
+            ),
+        }
+    }
+}
+
+impl ops::Mul<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, _rhs: f64) -> Vec3 {
+        Vec3 {
+            values: (
+                self.values.0 * _rhs,
+                self.values.1 * _rhs,
+                self.values.2 * _rhs,
+            ),
+        }
+    }
+}
+
+impl ops::Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, _rhs: Vec3) -> Vec3 {
+        _rhs * self
+    }
+}
+
+impl ops::Div<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, _rhs: f64) -> Vec3 {
+        (1.0 / _rhs) * self
+    }
+}
+
+#[cfg(test)]
+mod tests_vec3_std_ops {
+    use super::*;
+
+    #[test]
+    fn test_add() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            v + Vec3 {
+                values: (1.0, 1.0, 1.0),
+            },
+            Vec3 {
+                values: (2.0, 3.0, 4.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_sub() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            v - Vec3 {
+                values: (1.0, 1.0, 1.0),
+            },
+            Vec3 {
+                values: (0.0, 1.0, 2.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_mul() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            v * Vec3 {
+                values: (2.0, 2.0, 2.0),
+            },
+            Vec3 {
+                values: (2.0, 4.0, 6.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_mul_scalar() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            v * 2.0,
+            Vec3 {
+                values: (2.0, 4.0, 6.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_mul_scalar_reverse() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(2.0 * v, v * 2.0,);
+    }
+
+    #[test]
+    fn test_div() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            v / 2.0,
+            Vec3 {
+                values: (0.5, 1.0, 1.5),
+            }
+        );
+    }
+}
+
+
+pub fn dot(v1: Vec3, v2: Vec3) -> f64 {
+    v1.values.0 * v2.values.0 + v1.values.1 * v2.values.1 + v1.values.2 * v2.values.2
+}
+
+pub fn cross(v1: Vec3, v2: Vec3) -> Vec3 {
+    Vec3 {
+        values: (
+            v1.values.1 * v2.values.2 - v1.values.2 * v2.values.1,
+            v1.values.2 * v2.values.0 - v1.values.0 * v2.values.2,
+            v1.values.0 * v2.values.1 - v1.values.1 * v2.values.0,
+        ),
+    }
+}
+
+pub fn unit_vector(v: Vec3) -> Vec3 {
+    v / v.length()
+}
+
+#[cfg(test)]
+mod tests_vec3 {
+    use super::*;
+
+    #[test]
+    fn test_dot() {
+        let v1 = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        let v2 = Vec3 {
+            values: (2.0, 3.0, 4.0),
+        };
+        assert_eq!(dot(v1, v2), 20.0);
+    }
+
+    #[test]
+    fn test_cross() {
+        let v1 = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        let v2 = Vec3 {
+            values: (2.0, 3.0, 4.0),
+        };
+        assert_eq!(
+            cross(v1, v2),
+            Vec3 {
+                values: (-1.0, 2.0, -1.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_unit_vector() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        assert_eq!(
+            unit_vector(v),
+            Vec3 {
+                values: (0.2672612419124244, 0.5345224838248488, 0.8017837257372732),
+            }
+        );
     }
 }
