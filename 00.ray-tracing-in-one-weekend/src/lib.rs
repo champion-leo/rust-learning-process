@@ -3,6 +3,20 @@ pub struct Vec3 {
     values: (f64, f64, f64),
 }
 
+impl Vec3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
+        Vec3 {
+            values: (x, y, z),
+        }
+    }
+
+    pub fn null() -> Vec3 {
+        Vec3 {
+            values: (0.0, 0.0, 0.0),
+        }
+    }
+}
+
 impl std::fmt::Display for Vec3 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} {} {}", self.values.0, self.values.1, self.values.2)
@@ -495,4 +509,11 @@ mod tests_vec3 {
             }
         );
     }
+}
+
+pub fn write_color(pixel_color: Vec3) {
+    let ir: u32 = (255.999 * pixel_color.x()) as u32;
+    let ig: u32 = (255.999 * pixel_color.y()) as u32;
+    let ib: u32 = (255.999 * pixel_color.z()) as u32;
+    println!("{ir} {ig} {ib}")
 }
