@@ -1,17 +1,22 @@
 use std::env;
-use std::fs;
+use std::process;
+use project_my_grep::{Config, run};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let query = &args[1];
-    let file_path = &args[2];
-    
-    println!("Searching for {}", query);
-    println!("In file {}", file_path);
 
-    let file_content = fs::read_to_string(file_path)
-        .expect("Should have been able to read the file");
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
 
-    println!("File content:\n{}", file_content);
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
+
+    if let Err(e) = run(config) {
+        println!("Application error: {e}");
+        process::exit(1);
+    }
 
 }
+
