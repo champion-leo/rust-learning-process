@@ -1,4 +1,4 @@
-use ray_tracing_in_one_weekend::{write_color, Vec3};
+use ray_tracing_in_one_weekend::vec3::{write_color, Vec3};
 
 fn main() {
     const IMAGE_WIDTH: u32 = 256;
