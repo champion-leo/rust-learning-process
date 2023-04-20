@@ -1,17 +1,29 @@
 use ray_tracing_in_one_weekend::ray::Ray;
-use ray_tracing_in_one_weekend::vec3::{unit_vector, write_color, Vec3};
+use ray_tracing_in_one_weekend::vec3::{dot, unit_vector, write_color, Vec3};
 
 fn ray_color(r: Ray) -> Vec3 {
+    if (hit_the_sphere(Vec3::new(0., 0., -1.), 0.5, &r)) {
+        return Vec3::new(1., 0., 0.);
+    }
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+}
+
+fn hit_the_sphere(center: Vec3, radius: f64, r: &Ray) -> bool {
+    let oc = r.origin() - center;
+    let a = dot(r.direction(), r.direction());
+    let b = 2.0 * dot(oc, r.direction());
+    let c = dot(oc, oc) - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
 }
 
 fn main() {
     // Image
 
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u32 = 400;
+    const IMAGE_WIDTH: u32 = 1080;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
     // Camera
