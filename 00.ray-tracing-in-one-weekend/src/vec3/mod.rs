@@ -130,13 +130,13 @@ mod tests_vec3_eq {
 }
 
 impl Vec3 {
-    fn length_squared(&self) -> f64 {
+    pub fn length_squared(&self) -> f64 {
         self.values.0 * self.values.0
             + self.values.1 * self.values.1
             + self.values.2 * self.values.2
     }
 
-    fn length(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 }
