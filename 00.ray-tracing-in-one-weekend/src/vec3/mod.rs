@@ -36,15 +36,15 @@ mod tests_vec3_display {
 
 // Accessors
 impl Vec3 {
-    fn x(&self) -> &f64 {
+    pub fn x(&self) -> &f64 {
         return &self.values.0;
     }
 
-    fn y(&self) -> &f64 {
+    pub fn y(&self) -> &f64 {
         return &self.values.1;
     }
 
-    fn z(&self) -> &f64 {
+    pub fn z(&self) -> &f64 {
         return &self.values.2;
     }
 }
