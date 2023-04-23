@@ -1,0 +1,9 @@
+[workspace]
+
+members = ["adder", "add_one", "add_two"]
+# cargo new adder
+# cargo new add_one
+# cargo build
+# cargo run -p adder
+# cargo test
+# cargo test -p adder
