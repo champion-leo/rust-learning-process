@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - "00.ray-tracing-in-one-weekend/**"
+      - ".github/workflows/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,12 +14,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    working-directory: 00.ray-tracing-in-one-weekend
+     
     steps:
     - uses: actions/checkout@v3
-    - name: Move to ray tracer folder
-      run: cd "00.ray-tracing-in-one-weekend"
     - name: Build
       run: cargo build --verbose
+      working-directory: 00.ray-tracing-in-one-weekend
     - name: Run tests
       run: cargo test --verbose
+      working-directory: 00.ray-tracing-in-one-weekend
