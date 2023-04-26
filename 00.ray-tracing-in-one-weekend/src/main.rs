@@ -1,6 +1,6 @@
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use ray_tracing_in_one_weekend::ray::Ray;
-use ray_tracing_in_one_weekend::vec3::{dot, unit_vector, write_color, Vec3};
+use ray_tracing_in_one_weekend::vec3::{dot, get_color_str, unit_vector, Vec3};
 
 fn ray_color(r: Ray) -> Vec3 {
     let t = hit_the_sphere(Vec3::new(0., 0., -1.), 0.5, &r);
