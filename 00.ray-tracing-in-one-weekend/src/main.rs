@@ -51,6 +51,10 @@ fn main() {
         ProgressStyle::with_template("[{elapsed_precise}] {bar:60.cyan/blue} {pos:>7}/{len:7}")
             .unwrap(),
     );
+    let mut content = String::new();
+    content.push_str("P3\n");
+    content.push_str(&format!("{} {}\n", IMAGE_WIDTH, IMAGE_HEIGHT));
+    content.push_str("255\n");
     for j in (0..IMAGE_HEIGHT).rev() {
         for i in 0..IMAGE_WIDTH {
             let u: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
@@ -60,10 +64,11 @@ fn main() {
                 lower_left_corner + u * horizontal + v * vertical - origin,
             );
             let pixel_color = ray_color(r);
-            write_color(pixel_color);
+            content.push_str(&get_color_str(pixel_color));
         }
         pb.inc(1);
     }
     pb.finish_with_message("done");
+    std::fs::write("image.ppm", content).unwrap();
     eprintln!("");
 }

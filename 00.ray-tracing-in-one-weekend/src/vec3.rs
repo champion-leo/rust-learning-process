@@ -508,9 +508,9 @@ mod tests_vec3 {
     }
 }
 
-pub fn write_color(pixel_color: Vec3) {
+pub fn get_color_str(pixel_color: Vec3) -> String {
     let ir: u32 = (255.999 * pixel_color.x()) as u32;
     let ig: u32 = (255.999 * pixel_color.y()) as u32;
     let ib: u32 = (255.999 * pixel_color.z()) as u32;
-    println!("{ir} {ig} {ib}")
+    format!("{ir} {ig} {ib}\n")
 }
