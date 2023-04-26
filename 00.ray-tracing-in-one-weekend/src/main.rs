@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use ray_tracing_in_one_weekend::ray::Ray;
 use ray_tracing_in_one_weekend::vec3::{dot, unit_vector, write_color, Vec3};
 
@@ -45,13 +46,12 @@ fn main() {
     let vertical: Vec3 = Vec3::new(0.0, VIEWPORT_HEIGHT, 0.0);
     let lower_left_corner: Vec3 =
         origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, FOCAL_LENGTH);
-
+    let pb = ProgressBar::new(IMAGE_HEIGHT as u64);
     println!("P3");
     println!("{IMAGE_WIDTH} {IMAGE_HEIGHT}");
     println!("255");
 
     for j in (0..IMAGE_HEIGHT).rev() {
-        eprintln!("Scanlines remaining : {j}");
         for i in 0..IMAGE_WIDTH {
             let u: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
             let v: f64 = j as f64 / (IMAGE_HEIGHT - 1) as f64;
@@ -62,6 +62,8 @@ fn main() {
             let pixel_color = ray_color(r);
             write_color(pixel_color);
         }
+        pb.inc(1);
     }
-    eprintln!("Done.");
+    pb.finish_with_message("done");
+    eprintln!("");
 }
