@@ -47,10 +47,10 @@ fn main() {
     let lower_left_corner: Vec3 =
         origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, FOCAL_LENGTH);
     let pb = ProgressBar::new(IMAGE_HEIGHT as u64);
-    println!("P3");
-    println!("{IMAGE_WIDTH} {IMAGE_HEIGHT}");
-    println!("255");
-
+    pb.set_style(
+        ProgressStyle::with_template("[{elapsed_precise}] {bar:60.cyan/blue} {pos:>7}/{len:7}")
+            .unwrap(),
+    );
     for j in (0..IMAGE_HEIGHT).rev() {
         for i in 0..IMAGE_WIDTH {
             let u: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
