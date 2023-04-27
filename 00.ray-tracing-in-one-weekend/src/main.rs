@@ -83,7 +83,6 @@ fn main() {
         let pb = m.add(ProgressBar::new((max_height - min_height) as u64));
         pb.set_style(style.clone());
         handles.push(thread::spawn(move || {
-            eprintln!("{} - {} - {}", thread_index, min_height, max_height);
             for j in (min_height..max_height).rev() {
                 for i in 0..IMAGE_WIDTH {
                     let u: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
