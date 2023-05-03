@@ -8,7 +8,7 @@ impl Vec3 {
         Vec3 { values: (x, y, z) }
     }
 
-    pub fn null() -> Vec3 {
+    pub fn zero() -> Vec3 {
         Vec3 {
             values: (0.0, 0.0, 0.0),
         }

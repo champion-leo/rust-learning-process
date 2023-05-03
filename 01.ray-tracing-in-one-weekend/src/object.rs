@@ -8,6 +8,17 @@ pub struct HitRecord {
     pub front_face: bool,
 }
 
+impl HitRecord {
+    fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
+        self.front_face = dot(r.direction(), outward_normal) < 0.0;
+        self.normal = if self.front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        };
+    }
+}
+
 pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
@@ -46,13 +57,15 @@ impl Hittable for Sphere {
         let t = root;
         let p = r.at(t);
         let normal = (p - self.center) / self.radius;
-
-        Some(HitRecord {
+        let mut res = HitRecord {
             p,
             normal,
             t,
             front_face: false,
-        })
+        };
+        let outward_normal = (p - self.center) / self.radius;
+        res.set_face_normal(r, outward_normal);
+        Some(res)
     }
 }
 
@@ -107,7 +120,7 @@ mod sphere_tests {
         assert!(hit_record.is_some());
         let hit_record = hit_record.unwrap();
         assert_eq!(hit_record.p, Vec3::new(1.0, 0.0, 0.0));
-        assert_eq!(hit_record.normal, Vec3::new(1.0, 0.0, 0.0));
+        assert_eq!(hit_record.normal, Vec3::new(-1.0, 0.0, 0.0));
         assert_eq!(hit_record.t, 1.0);
     }
 }
