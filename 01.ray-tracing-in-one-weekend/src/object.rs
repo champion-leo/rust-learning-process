@@ -23,7 +23,7 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
-struct Sphere {
+pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
 }
