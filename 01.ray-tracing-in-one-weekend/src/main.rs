@@ -1,15 +1,23 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use ray_tracing_in_one_weekend::helper::INFINITY;
+use ray_tracing_in_one_weekend::hittable_list::HittableList;
+use ray_tracing_in_one_weekend::object::{Hittable, Sphere};
 use ray_tracing_in_one_weekend::ray::Ray;
 use ray_tracing_in_one_weekend::vec3::{dot, get_color_str, unit_vector, Vec3};
 
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc};
 use std::thread;
 
-fn ray_color(r: Ray) -> Vec3 {
-    let t = hit_the_sphere(Vec3::new(0., 0., -1.), 0.5, &r);
-    if t > 0.0 {
-        let n = unit_vector(r.at(t) - Vec3::new(0., 0., -1.));
-        return 0.5 * Vec3::new(n.x() + 1., n.y() + 1., n.z() + 1.);
+fn ray_color(r: Ray, world: &HittableList) -> Vec3 {
+    let hit_record = world.hit(&r, 0., INFINITY);
+    if hit_record.is_some() {
+        let hit_record = hit_record.unwrap();
+        return 0.5
+            * Vec3::new(
+                hit_record.normal.x() + 1.,
+                hit_record.normal.y() + 1.,
+                hit_record.normal.z() + 1.,
+            );
     }
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -49,6 +57,12 @@ fn main() {
     const IMAGE_WIDTH: u32 = 1080;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 
+    // World
+    let mut world = HittableList::new();
+    world.add(Arc::new(Sphere::new(Vec3::new(0., 0., -1.), 0.5)));
+    world.add(Arc::new(Sphere::new(Vec3::new(0., -100.5, -1.), 100.)));
+    let world = Arc::new(world.clone());
+
     // Camera
 
     const VIEWPORT_HEIGHT: f64 = 2.0;
@@ -71,6 +85,7 @@ fn main() {
     header.push_str("P3\n");
     header.push_str(&format!("{} {}\n", IMAGE_WIDTH, IMAGE_HEIGHT));
     header.push_str("255\n");
+
     for thread_index in 0..THREADS {
         let mut current_content = String::new();
         let min_height = thread_index * (IMAGE_HEIGHT / THREADS);
@@ -82,6 +97,7 @@ fn main() {
         let tx = tx.clone();
         let pb = m.add(ProgressBar::new((max_height - min_height) as u64));
         pb.set_style(style.clone());
+        let world = world.clone();
         handles.push(thread::spawn(move || {
             for j in (min_height..max_height).rev() {
                 for i in 0..IMAGE_WIDTH {
@@ -91,7 +107,7 @@ fn main() {
                         origin,
                         lower_left_corner + u * horizontal + v * vertical - origin,
                     );
-                    let pixel_color = ray_color(r);
+                    let pixel_color = ray_color(r, &*world);
                     current_content.push_str(&get_color_str(pixel_color));
                 }
                 thread::sleep(std::time::Duration::from_millis(10));
@@ -121,3 +137,54 @@ fn main() {
     std::fs::write("image.ppm", file_content).unwrap();
     eprintln!("");
 }
+
+// use std::sync::{Arc, Mutex};
+// use std::thread;
+// use std::time::Duration;
+
+// const NUM_THREADS: usize = 4;
+
+// trait SharedData: Sync + Send {
+//     fn get(&self) -> i32;
+// }
+
+// struct SharedDataImpl1 {
+//     data: i32,
+// }
+
+// impl SharedData for SharedDataImpl1 {
+//     fn get(&self) -> i32 {
+//         self.data
+//     }
+// }
+
+// struct SharedDataImpl2 {
+//     data: i32,
+//     data2: i32,
+// }
+
+// impl SharedData for SharedDataImpl2 {
+//     fn get(&self) -> i32 {
+//         self.data + self.data2
+//     }
+// }
+
+// fn main() {
+//     let mut vec: Vec<Arc<dyn SharedData>> = Vec::new();
+//     vec.push(Arc::new(SharedDataImpl1 { data: 1 }));
+//     vec.push(Arc::new(SharedDataImpl2 { data: 1, data2: 2 }));
+//     let arc = Arc::new(vec);
+//     for _ in 0..NUM_THREADS {
+//         let arc = arc.clone();
+//         thread::spawn(move || {
+//             let mut shared_data = arc;
+//             println!("Thread {:?} got the lock", thread::current().id());
+//             println!(
+//                 "Thread {:?} shared_data = {:?}",
+//                 thread::current().id(),
+//                 shared_data[0].get()
+//             );
+//         });
+//     }
+//     thread::sleep(Duration::from_millis(10000));
+// }

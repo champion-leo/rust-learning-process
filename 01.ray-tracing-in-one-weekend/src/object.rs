@@ -1,5 +1,6 @@
 use crate::ray::Ray;
 use crate::vec3::{dot, Vec3};
+use dyn_clonable::*;
 
 pub struct HitRecord {
     pub p: Vec3,
@@ -19,10 +20,12 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+#[clonable]
+pub trait Hittable: Send + Sync + Clone {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
+#[derive(Clone)]
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
