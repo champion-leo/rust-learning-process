@@ -3,7 +3,7 @@ use ray_tracing_in_one_weekend::helper::INFINITY;
 use ray_tracing_in_one_weekend::hittable_list::HittableList;
 use ray_tracing_in_one_weekend::object::{Hittable, Sphere};
 use ray_tracing_in_one_weekend::ray::Ray;
-use ray_tracing_in_one_weekend::vec3::{dot, get_color_str, unit_vector, Vec3};
+use ray_tracing_in_one_weekend::vec3::{get_color_str, unit_vector, Vec3};
 
 use std::sync::{mpsc, Arc};
 use std::thread;
@@ -22,19 +22,6 @@ fn ray_color(r: Ray, world: &HittableList) -> Vec3 {
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
-}
-
-fn hit_the_sphere(center: Vec3, radius: f64, r: &Ray) -> f64 {
-    let oc = r.origin() - center;
-    let a = r.direction().length_squared();
-    let half_b = dot(oc, r.direction());
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (-half_b - discriminant.sqrt()) / a;
-    }
 }
 
 struct ThreadResult {
@@ -137,54 +124,3 @@ fn main() {
     std::fs::write("image.ppm", file_content).unwrap();
     eprintln!("");
 }
-
-// use std::sync::{Arc, Mutex};
-// use std::thread;
-// use std::time::Duration;
-
-// const NUM_THREADS: usize = 4;
-
-// trait SharedData: Sync + Send {
-//     fn get(&self) -> i32;
-// }
-
-// struct SharedDataImpl1 {
-//     data: i32,
-// }
-
-// impl SharedData for SharedDataImpl1 {
-//     fn get(&self) -> i32 {
-//         self.data
-//     }
-// }
-
-// struct SharedDataImpl2 {
-//     data: i32,
-//     data2: i32,
-// }
-
-// impl SharedData for SharedDataImpl2 {
-//     fn get(&self) -> i32 {
-//         self.data + self.data2
-//     }
-// }
-
-// fn main() {
-//     let mut vec: Vec<Arc<dyn SharedData>> = Vec::new();
-//     vec.push(Arc::new(SharedDataImpl1 { data: 1 }));
-//     vec.push(Arc::new(SharedDataImpl2 { data: 1, data2: 2 }));
-//     let arc = Arc::new(vec);
-//     for _ in 0..NUM_THREADS {
-//         let arc = arc.clone();
-//         thread::spawn(move || {
-//             let mut shared_data = arc;
-//             println!("Thread {:?} got the lock", thread::current().id());
-//             println!(
-//                 "Thread {:?} shared_data = {:?}",
-//                 thread::current().id(),
-//                 shared_data[0].get()
-//             );
-//         });
-//     }
-//     thread::sleep(Duration::from_millis(10000));
-// }
