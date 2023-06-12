@@ -1,3 +1,5 @@
+use crate::helper::clamp;
+
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
     values: (f64, f64, f64),
@@ -508,9 +510,18 @@ mod tests_vec3 {
     }
 }
 
-pub fn get_color_str(pixel_color: Vec3) -> String {
-    let ir: u32 = (255.999 * pixel_color.x()) as u32;
-    let ig: u32 = (255.999 * pixel_color.y()) as u32;
-    let ib: u32 = (255.999 * pixel_color.z()) as u32;
+pub fn get_color_str(pixel_color: Vec3, samples_per_pixel: u32) -> String {
+    let r = *pixel_color.x();
+    let g = *pixel_color.y();
+    let b = *pixel_color.z();
+
+    let scale = 1.0 / (samples_per_pixel as f64);
+    let r = r * scale;
+    let g = g * scale;
+    let b = b * scale;
+
+    let ir: u32 = (255.999 * clamp(r, 0.0, 0.999)) as u32;
+    let ig: u32 = (255.999 * clamp(g, 0.0, 0.999)) as u32;
+    let ib: u32 = (255.999 * clamp(b, 0.0, 0.999)) as u32;
     format!("{ir} {ig} {ib}\n")
 }

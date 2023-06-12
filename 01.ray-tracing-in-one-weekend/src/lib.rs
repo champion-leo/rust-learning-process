@@ -1,3 +1,4 @@
+pub mod camera;
 pub mod helper;
 pub mod hittable_list;
 pub mod object;

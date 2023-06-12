@@ -1,5 +1,6 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use ray_tracing_in_one_weekend::helper::INFINITY;
+use ray_tracing_in_one_weekend::camera::Camera;
+use ray_tracing_in_one_weekend::helper::{random, INFINITY};
 use ray_tracing_in_one_weekend::hittable_list::HittableList;
 use ray_tracing_in_one_weekend::object::{Hittable, Sphere};
 use ray_tracing_in_one_weekend::ray::Ray;
@@ -38,13 +39,8 @@ fn main() {
     let (tx, rx) = mpsc::channel();
     let mut handles = vec![];
 
-    // Image
-
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
-    const IMAGE_WIDTH: u32 = 1080;
-    const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-
     // World
+
     let mut world = HittableList::new();
     world.add(Arc::new(Sphere::new(Vec3::new(0., 0., -1.), 0.5)));
     world.add(Arc::new(Sphere::new(Vec3::new(0., -100.5, -1.), 100.)));
@@ -52,17 +48,16 @@ fn main() {
 
     // Camera
 
-    const VIEWPORT_HEIGHT: f64 = 2.0;
-    const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
-    const FOCAL_LENGTH: f64 = 1.0;
+    let camera = Camera::new();
 
-    // Here I can't use const because my operators overloading are not const compatible
-    // there might be a way to do it but I don't know it yet...
-    let origin: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-    let horizontal: Vec3 = Vec3::new(VIEWPORT_WIDTH, 0.0, 0.0);
-    let vertical: Vec3 = Vec3::new(0.0, VIEWPORT_HEIGHT, 0.0);
-    let lower_left_corner: Vec3 =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, FOCAL_LENGTH);
+    // Image
+    // TODO: remove duplicate ASPECT_RATIO here and in the camera
+    const ASPECT_RATIO: f64 = 16.0 / 9.0;
+
+    const IMAGE_WIDTH: u32 = 1080;
+    const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
+    const SAMPLES_PER_PIXEL: u32 = 100;
+
     let m = MultiProgress::new();
     let style =
         ProgressStyle::with_template("[{elapsed_precise}] {bar:60.cyan/blue} {pos:>7}/{len:7}")
@@ -85,17 +80,18 @@ fn main() {
         let pb = m.add(ProgressBar::new((max_height - min_height) as u64));
         pb.set_style(style.clone());
         let world = world.clone();
+        let camera = camera.clone();
         handles.push(thread::spawn(move || {
             for j in (min_height..max_height).rev() {
                 for i in 0..IMAGE_WIDTH {
-                    let u: f64 = i as f64 / (IMAGE_WIDTH - 1) as f64;
-                    let v: f64 = j as f64 / (IMAGE_HEIGHT - 1) as f64;
-                    let r = Ray::new(
-                        origin,
-                        lower_left_corner + u * horizontal + v * vertical - origin,
-                    );
-                    let pixel_color = ray_color(r, &*world);
-                    current_content.push_str(&get_color_str(pixel_color));
+                    let mut pixel_color = Vec3::new(0., 0., 0.);
+                    for _ in 0..=SAMPLES_PER_PIXEL {
+                        let u: f64 = (i as f64 + random()) / (IMAGE_WIDTH - 1) as f64;
+                        let v: f64 = (j as f64 + random()) / (IMAGE_HEIGHT - 1) as f64;
+                        let r = camera.get_ray(u, v);
+                        pixel_color += ray_color(r, &*world);
+                    }
+                    current_content.push_str(&get_color_str(pixel_color, SAMPLES_PER_PIXEL));
                 }
                 thread::sleep(std::time::Duration::from_millis(10));
                 pb.inc(1);
