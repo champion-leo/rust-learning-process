@@ -10,7 +10,7 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 
 fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
-    let hit_record = world.hit(&r, 0., INFINITY);
+    let hit_record = world.hit(&r, 0.001, INFINITY);
     if depht <= 0 {
         return Vec3::new(0., 0., 0.);
     }
