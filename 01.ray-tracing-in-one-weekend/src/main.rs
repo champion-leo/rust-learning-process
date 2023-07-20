@@ -9,6 +9,13 @@ use ray_tracing_in_one_weekend::vec3::{get_color_str, unit_vector, Vec3};
 use std::sync::{mpsc, Arc};
 use std::thread;
 
+enum DiffuseMode {
+    SimpleLambertian,
+    Lambertian,
+}
+
+const DIFFUSE_MODE: DiffuseMode = DiffuseMode::SimpleLambertian;
+
 fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     let hit_record = world.hit(&r, 0.001, INFINITY);
     if depht <= 0 {
@@ -16,8 +23,17 @@ fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     }
     if hit_record.is_some() {
         let hit_record = hit_record.unwrap();
-        let target = hit_record.p + hit_record.normal + Vec3::random_in_unit_sphere();
-        return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1);
+        match DIFFUSE_MODE {
+            DiffuseMode::SimpleLambertian => {
+                let target = hit_record.p + hit_record.normal + Vec3::random_in_unit_sphere();
+                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1)
+            }
+            DiffuseMode::Lambertian => {
+                let target = hit_record.p + hit_record.normal + Vec3::random_unit_vector();
+                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1)
+            }
+        }
+        
     }
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
