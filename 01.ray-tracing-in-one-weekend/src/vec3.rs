@@ -1,4 +1,4 @@
-use crate::helper::clamp;
+use crate::helper::{clamp, random, random_range};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
@@ -10,10 +10,70 @@ impl Vec3 {
         Vec3 { values: (x, y, z) }
     }
 
+    pub fn random() -> Vec3 {
+        Vec3 { values: (random(), random(), random()) }
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Vec3 {
+        Vec3 { values: (random_range(min, max), random_range( min, max), random_range(min, max)) }
+    }
+
     pub fn zero() -> Vec3 {
         Vec3 {
             values: (0.0, 0.0, 0.0),
         }
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Vec3::random_in_range(-1. ,1.);
+            if p.length_squared() >= 1. {
+                continue;
+            }
+            return p;
+        }
+    }
+}
+
+#[cfg(test)]
+mod creation {
+    use super::*;
+    
+    #[test]
+    fn new() {
+        let v = Vec3::new(1., 2., 3.);
+        assert_eq!(*v.x(), 1.);
+        assert_eq!(*v.y(), 2.);
+        assert_eq!(*v.z(), 3.);
+    }
+
+    #[test]
+    fn random() {
+        Vec3::random();
+        return
+    }
+
+    #[test]
+    fn random_in_range() {
+        fn assert_between(value: f64, min: f64, max: f64) {
+            assert!(min <= value);
+            assert!(value <= max);
+        }
+        let min = -5.;
+        let max = 5.;
+        let vec = Vec3::random_in_range(min, max);
+
+        assert_between(*vec.x(), min, max);
+        assert_between(*vec.y(), min, max);
+        assert_between(*vec.z(), min, max);
+    }
+
+    #[test]
+    fn zero() {
+        let vec = Vec3::zero();
+        assert_eq!(*vec.x(), 0.);
+        assert_eq!(*vec.y(), 0.);
+        assert_eq!(*vec.z(), 0.);
     }
 }
 
@@ -525,3 +585,5 @@ pub fn get_color_str(pixel_color: Vec3, samples_per_pixel: u32) -> String {
     let ib: u32 = (255.999 * clamp(b, 0.0, 0.999)) as u32;
     format!("{ir} {ig} {ib}\n")
 }
+
+

@@ -9,16 +9,15 @@ use ray_tracing_in_one_weekend::vec3::{get_color_str, unit_vector, Vec3};
 use std::sync::{mpsc, Arc};
 use std::thread;
 
-fn ray_color(r: Ray, world: &HittableList) -> Vec3 {
+fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     let hit_record = world.hit(&r, 0., INFINITY);
+    if depht <= 0 {
+        return Vec3::new(0., 0., 0.);
+    }
     if hit_record.is_some() {
         let hit_record = hit_record.unwrap();
-        return 0.5
-            * Vec3::new(
-                hit_record.normal.x() + 1.,
-                hit_record.normal.y() + 1.,
-                hit_record.normal.z() + 1.,
-            );
+        let target = hit_record.p + hit_record.normal + Vec3::random_in_unit_sphere();
+        return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1);
     }
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -57,6 +56,7 @@ fn main() {
     const IMAGE_WIDTH: u32 = 1080;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 100;
+    const MAX_DEPHT: i32 = 50;
 
     let m = MultiProgress::new();
     let style =
@@ -89,7 +89,7 @@ fn main() {
                         let u: f64 = (i as f64 + random()) / (IMAGE_WIDTH - 1) as f64;
                         let v: f64 = (j as f64 + random()) / (IMAGE_HEIGHT - 1) as f64;
                         let r = camera.get_ray(u, v);
-                        pixel_color += ray_color(r, &*world);
+                        pixel_color += ray_color(r, &*world, MAX_DEPHT);
                     }
                     current_content.push_str(&get_color_str(pixel_color, SAMPLES_PER_PIXEL));
                 }
