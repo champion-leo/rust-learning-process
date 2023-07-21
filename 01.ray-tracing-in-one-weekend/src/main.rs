@@ -12,9 +12,10 @@ use std::thread;
 enum DiffuseMode {
     SimpleLambertian,
     Lambertian,
+    RandomHemisphere,
 }
 
-const DIFFUSE_MODE: DiffuseMode = DiffuseMode::SimpleLambertian;
+const DIFFUSE_MODE: DiffuseMode = DiffuseMode::RandomHemisphere;
 
 fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     let hit_record = world.hit(&r, 0.001, INFINITY);
@@ -31,6 +32,10 @@ fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
             DiffuseMode::Lambertian => {
                 let target = hit_record.p + hit_record.normal + Vec3::random_unit_vector();
                 return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1)
+            }
+            DiffuseMode::RandomHemisphere => {
+                let target = hit_record.p + Vec3::random_in_hemisphere(hit_record.normal);
+                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1) 
             }
         }
         
