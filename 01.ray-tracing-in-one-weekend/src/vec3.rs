@@ -13,11 +13,19 @@ impl Vec3 {
     }
 
     pub fn random() -> Vec3 {
-        Vec3 { values: (random(), random(), random()) }
+        Vec3 {
+            values: (random(), random(), random()),
+        }
     }
 
     pub fn random_in_range(min: f64, max: f64) -> Vec3 {
-        Vec3 { values: (random_range(min, max), random_range( min, max), random_range(min, max)) }
+        Vec3 {
+            values: (
+                random_range(min, max),
+                random_range(min, max),
+                random_range(min, max),
+            ),
+        }
     }
 
     pub fn zero() -> Vec3 {
@@ -28,7 +36,7 @@ impl Vec3 {
 
     pub fn random_in_unit_sphere() -> Vec3 {
         loop {
-            let p = Vec3::random_in_range(-1. ,1.);
+            let p = Vec3::random_in_range(-1., 1.);
             if p.length_squared() >= 1. {
                 continue;
             }
@@ -40,12 +48,11 @@ impl Vec3 {
         unit_vector(Vec3::random_in_unit_sphere())
     }
 
-    pub fn random_in_hemisphere(normal: Vec3) ->Vec3 {
+    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
         let in_unit_sphere = Vec3::random_in_unit_sphere();
         if dot(in_unit_sphere, normal) > 0.0 {
             in_unit_sphere
-        }
-        else{
+        } else {
             -in_unit_sphere
         }
     }
@@ -54,7 +61,7 @@ impl Vec3 {
 #[cfg(test)]
 mod creation {
     use super::*;
-    
+
     #[test]
     fn new() {
         let v = Vec3::new(1., 2., 3.);
@@ -66,7 +73,7 @@ mod creation {
     #[test]
     fn random() {
         Vec3::random();
-        return
+        return;
     }
 
     #[test]
@@ -267,7 +274,6 @@ mod tests_vec3_length {
         assert_eq!(v.length(), 14.0_f64.sqrt());
     }
 }
-
 
 impl ops::Neg for Vec3 {
     type Output = Vec3;
@@ -617,8 +623,15 @@ pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - 2.0 * dot(v, n) * n
 }
 
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = dot(-uv, n).min(1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
+    r_out_perp + r_out_parallel
+}
+
 #[cfg(test)]
-mod tests_reflect {
+mod reflect_and_refract {
     use super::*;
 
     #[test]
@@ -632,7 +645,23 @@ mod tests_reflect {
         assert_eq!(
             reflect(v, n),
             Vec3 {
-                values: (-3.0, -4.0, -5.0),
+                values: (-79.0, -118.0, -157.0),
+            }
+        );
+    }
+
+    #[test]
+    fn test_refract() {
+        let uv = Vec3 {
+            values: (0.0, 0.0, 0.0),
+        };
+        let n = Vec3 {
+            values: (0.0, 1.0, 0.0),
+        };
+        assert_eq!(
+            refract(uv, n, 2.0),
+            Vec3 {
+                values: (0.0, -1.0, 0.0),
             }
         );
     }
@@ -654,5 +683,3 @@ pub fn get_color_str(pixel_color: Vec3, samples_per_pixel: u32) -> String {
     let ib: u32 = (255.999 * clamp(b, 0.0, 0.999)) as u32;
     format!("{ir} {ig} {ib}\n")
 }
-
-
