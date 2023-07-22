@@ -14,6 +14,9 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
+    /**
+     * Set the normal and 
+     */
     fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         self.front_face = dot(r.direction(), outward_normal) < 0.0;
         self.normal = if self.front_face {
@@ -58,9 +61,9 @@ impl Hittable for Sphere {
             return None;
         }
         let sqrtd = discriminant.sqrt();
-        let root = (-half_b - sqrtd) / a;
+        let mut root = (-half_b - sqrtd) / a;
         if root < t_min || t_max < root {
-            let root = (-half_b + sqrtd) / a;
+            root = (-half_b + sqrtd) / a;
             if root < t_min || t_max < root {
                 return None;
             }
@@ -88,24 +91,22 @@ mod sphere_tests {
 
     use super::*;
 
+    fn get_material() -> Arc<dyn Scatterable> {
+        Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0)))
+    }
+
     #[test]
-    fn test_new() {
+    fn new() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(
-            center,
-            radius,
-            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
-        );
+        let sphere = Sphere::new(center, radius, get_material());
         assert_eq!(sphere.center, center);
         assert_eq!(sphere.radius, radius);
     }
 
     #[test]
-    fn test_hit() {
-        let center = Vec3::new(0.0, 0.0, 0.0);
-        let radius = 1.0;
-        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
+    fn hit() {
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 1., get_material());
         let ray = Ray::new(Vec3::new(0.0, 0.0, -2.0), Vec3::new(0.0, 0.0, 1.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());
@@ -113,13 +114,14 @@ mod sphere_tests {
         assert_eq!(hit_record.p, Vec3::new(0.0, 0.0, -1.0));
         assert_eq!(hit_record.normal, Vec3::new(0.0, 0.0, -1.0));
         assert_eq!(hit_record.t, 1.0);
+        assert!(hit_record.front_face);
     }
 
     #[test]
-    fn test_hit_from_far_away() {
+    fn hit_from_far_away() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
+        let sphere = Sphere::new(center, radius, get_material());
         let ray = Ray::new(Vec3::new(0.0, 0.0, -100.0), Vec3::new(0.0, 0.0, 1.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());
@@ -127,13 +129,31 @@ mod sphere_tests {
         assert_eq!(hit_record.p, Vec3::new(0.0, 0.0, -1.0));
         assert_eq!(hit_record.normal, Vec3::new(0.0, 0.0, -1.0));
         assert_eq!(hit_record.t, 99.0);
+        assert!(hit_record.front_face);
     }
 
     #[test]
-    fn test_hit_on_border() {
+    fn hit_from_inside() {
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 0.0), 1., get_material());
+        let ray = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 0.5));
+        let hit_record = sphere.hit(&ray, 0.0, 100.0);
+        assert!(hit_record.is_some());
+        let hit_record = hit_record.unwrap();
+        assert_eq!(hit_record.p, Vec3::new(0.0, 0.0, 1.0));
+        assert_eq!(hit_record.normal, Vec3::new(0.0, 0.0, -1.0));
+        assert_eq!(hit_record.t, 2.0);
+        assert!(!hit_record.front_face);
+    }
+
+    #[test]
+    fn hit_on_border() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
+        let sphere = Sphere::new(
+            center,
+            radius,
+            get_material(),
+        );
         let ray = Ray::new(Vec3::new(1.0, 0.0, -2.0), Vec3::new(0.0, 0.0, 2.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());
