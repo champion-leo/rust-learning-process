@@ -2,20 +2,13 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use ray_tracing_in_one_weekend::camera::Camera;
 use ray_tracing_in_one_weekend::helper::{random, INFINITY};
 use ray_tracing_in_one_weekend::hittable_list::HittableList;
+use ray_tracing_in_one_weekend::material::{Lambertian, Metal};
 use ray_tracing_in_one_weekend::object::{Hittable, Sphere};
 use ray_tracing_in_one_weekend::ray::Ray;
 use ray_tracing_in_one_weekend::vec3::{get_color_str, unit_vector, Vec3};
 
 use std::sync::{mpsc, Arc};
 use std::thread;
-
-enum DiffuseMode {
-    SimpleLambertian,
-    Lambertian,
-    RandomHemisphere,
-}
-
-const DIFFUSE_MODE: DiffuseMode = DiffuseMode::RandomHemisphere;
 
 fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     let hit_record = world.hit(&r, 0.001, INFINITY);
@@ -24,21 +17,14 @@ fn ray_color(r: Ray, world: &HittableList, depht: i32) -> Vec3 {
     }
     if hit_record.is_some() {
         let hit_record = hit_record.unwrap();
-        match DIFFUSE_MODE {
-            DiffuseMode::SimpleLambertian => {
-                let target = hit_record.p + hit_record.normal + Vec3::random_in_unit_sphere();
-                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1)
-            }
-            DiffuseMode::Lambertian => {
-                let target = hit_record.p + hit_record.normal + Vec3::random_unit_vector();
-                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1)
-            }
-            DiffuseMode::RandomHemisphere => {
-                let target = hit_record.p + Vec3::random_in_hemisphere(hit_record.normal);
-                return 0.5 * ray_color(Ray::new(hit_record.p, target - hit_record.p), world, depht - 1) 
-            }
+        let mut attenuation = Vec3::new(0., 0., 0.);
+        let mut scattered = Ray::new(Vec3::new(0., 0., 0.), Vec3::new(0., 0., 0.));
+        if hit_record
+            .material
+            .scatter(&r, &hit_record, &mut attenuation, &mut scattered)
+        {
+            return attenuation.clone() * ray_color(scattered, world, depht - 1);
         }
-        
     }
     let unit_direction = unit_vector(r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -60,10 +46,33 @@ fn main() {
     let mut handles = vec![];
 
     // World
-
     let mut world = HittableList::new();
-    world.add(Arc::new(Sphere::new(Vec3::new(0., 0., -1.), 0.5)));
-    world.add(Arc::new(Sphere::new(Vec3::new(0., -100.5, -1.), 100.)));
+
+    let material_ground = Arc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0)));
+    let material_center = Arc::new(Lambertian::new(Vec3::new(0.7, 0.3, 0.3)));
+    let material_left = Arc::new(Metal::new(Vec3::new(0.8, 0.8, 0.8)));
+    let material_right = Arc::new(Metal::new(Vec3::new(0.8, 0.6, 0.2)));
+
+    world.add(Arc::new(Sphere::new(
+        Vec3::new(0., -100.5, -1.),
+        100.,
+        material_ground,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vec3::new(0., 0., -1.),
+        0.5,
+        material_center,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vec3::new(-1., 0., -1.),
+        0.5,
+        material_left,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vec3::new(1., 0., -1.),
+        0.5,
+        material_right,
+    )));
     let world = Arc::new(world.clone());
 
     // Camera

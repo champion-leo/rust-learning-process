@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use crate::material::Scatterable;
 use crate::ray::Ray;
 use crate::vec3::{dot, Vec3};
 use dyn_clonable::*;
@@ -5,6 +8,7 @@ use dyn_clonable::*;
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
+    pub material: Arc<dyn Scatterable>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -29,11 +33,16 @@ pub trait Hittable: Send + Sync + Clone {
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
+    pub material: Arc<dyn Scatterable>,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f64, material: Arc<dyn Scatterable>) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -63,6 +72,7 @@ impl Hittable for Sphere {
         let mut res = HitRecord {
             p,
             normal,
+            material: self.material.clone(),
             t,
             front_face: false,
         };
@@ -74,13 +84,19 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod sphere_tests {
+    use crate::material::Lambertian;
+
     use super::*;
 
     #[test]
     fn test_new() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius);
+        let sphere = Sphere::new(
+            center,
+            radius,
+            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
+        );
         assert_eq!(sphere.center, center);
         assert_eq!(sphere.radius, radius);
     }
@@ -89,7 +105,7 @@ mod sphere_tests {
     fn test_hit() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius);
+        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
         let ray = Ray::new(Vec3::new(0.0, 0.0, -2.0), Vec3::new(0.0, 0.0, 1.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());
@@ -103,7 +119,7 @@ mod sphere_tests {
     fn test_hit_from_far_away() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius);
+        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
         let ray = Ray::new(Vec3::new(0.0, 0.0, -100.0), Vec3::new(0.0, 0.0, 1.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());
@@ -117,7 +133,7 @@ mod sphere_tests {
     fn test_hit_on_border() {
         let center = Vec3::new(0.0, 0.0, 0.0);
         let radius = 1.0;
-        let sphere = Sphere::new(center, radius);
+        let sphere = Sphere::new(center, radius, Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))));
         let ray = Ray::new(Vec3::new(1.0, 0.0, -2.0), Vec3::new(0.0, 0.0, 2.0));
         let hit_record = sphere.hit(&ray, 0.0, 100.0);
         assert!(hit_record.is_some());

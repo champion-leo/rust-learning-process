@@ -208,6 +208,34 @@ mod tests_vec3_eq {
 }
 
 impl Vec3 {
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.values.0.abs() < s && self.values.1.abs() < s && self.values.2.abs() < s
+    }
+}
+
+#[cfg(test)]
+mod tests_vec3_near_zero {
+    use super::*;
+
+    #[test]
+    fn test_near_zero() {
+        let v = Vec3 {
+            values: (1e-9, 1e-9, 1e-9),
+        };
+        assert!(v.near_zero());
+    }
+
+    #[test]
+    fn test_not_near_zero() {
+        let v = Vec3 {
+            values: (1e-7, 1e-7, 1e-7),
+        };
+        assert!(!v.near_zero());
+    }
+}
+
+impl Vec3 {
     pub fn length_squared(&self) -> f64 {
         self.values.0 * self.values.0
             + self.values.1 * self.values.1
@@ -580,6 +608,31 @@ mod tests_vec3 {
             unit_vector(v),
             Vec3 {
                 values: (0.2672612419124244, 0.5345224838248488, 0.8017837257372732),
+            }
+        );
+    }
+}
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - 2.0 * dot(v, n) * n
+}
+
+#[cfg(test)]
+mod tests_reflect {
+    use super::*;
+
+    #[test]
+    fn test_reflect() {
+        let v = Vec3 {
+            values: (1.0, 2.0, 3.0),
+        };
+        let n = Vec3 {
+            values: (2.0, 3.0, 4.0),
+        };
+        assert_eq!(
+            reflect(v, n),
+            Vec3 {
+                values: (-3.0, -4.0, -5.0),
             }
         );
     }

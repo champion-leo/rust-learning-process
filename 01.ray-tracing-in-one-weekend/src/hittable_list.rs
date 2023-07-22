@@ -43,7 +43,7 @@ impl Hittable for HittableList {
 #[cfg(test)]
 mod hittable_list_test {
     use super::*;
-    use crate::{object::Sphere, vec3::Vec3};
+    use crate::{material::Lambertian, object::Sphere, vec3::Vec3};
 
     #[test]
     fn test_new() {
@@ -54,14 +54,22 @@ mod hittable_list_test {
     #[test]
     fn test_add() {
         let mut list = HittableList::new();
-        list.add(Arc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
+        list.add(Arc::new(Sphere::new(
+            Vec3::new(0.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
+        )));
         assert_eq!(list.objects.len(), 1);
     }
 
     #[test]
     fn test_clear() {
         let mut list = HittableList::new();
-        list.add(Arc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
+        list.add(Arc::new(Sphere::new(
+            Vec3::new(0.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
+        )));
         assert!(list.objects.len() > 0);
         list.clear();
         assert!(list.objects.is_empty());
@@ -70,8 +78,16 @@ mod hittable_list_test {
     #[test]
     fn test_hit() {
         let mut list = HittableList::new();
-        list.add(Arc::new(Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5)));
-        list.add(Arc::new(Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)));
+        list.add(Arc::new(Sphere::new(
+            Vec3::new(0.0, 0.0, -1.0),
+            0.5,
+            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
+        )));
+        list.add(Arc::new(Sphere::new(
+            Vec3::new(0.0, -100.5, -1.0),
+            100.0,
+            Arc::new(Lambertian::new(Vec3::new(0.0, 0.0, 0.0))),
+        )));
 
         let r = Ray::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, -1.0));
         let res = list.hit(&r, 0.0, 100.0);
