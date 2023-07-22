@@ -64,7 +64,7 @@ fn main() {
     )));
     world.add(Arc::new(Sphere::new(
         Vec3::new(-1., 0., -1.),
-        0.5,
+        -0.4,
         material_left,
     )));
     world.add(Arc::new(Sphere::new(
