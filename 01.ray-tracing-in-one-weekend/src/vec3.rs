@@ -683,3 +683,24 @@ pub fn get_color_str(pixel_color: Vec3, samples_per_pixel: u32) -> String {
     let ib: u32 = (255.999 * clamp(b, 0.0, 0.999)) as u32;
     format!("{ir} {ig} {ib}\n")
 }
+
+pub fn random_in_unit_disk() -> Vec3 {
+    loop {
+        let p = Vec3::new(random_range(-1.,1.), random_range(-1.,1.), 0.);
+        if p.length_squared() < 1. {
+            return p;
+        }
+        
+    }
+}
+
+#[cfg(test)]
+mod tests_random_in_unit_disk {
+    use super::*;
+
+    #[test]
+    fn test_random_in_unit_disk() {
+        let p = random_in_unit_disk();
+        assert!(p.length() < 1.);
+    }
+}

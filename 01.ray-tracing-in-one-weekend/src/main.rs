@@ -1,5 +1,5 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use ray_tracing_in_one_weekend::camera::Camera;
+use ray_tracing_in_one_weekend::camera::{self, Camera};
 use ray_tracing_in_one_weekend::helper::{random, INFINITY};
 use ray_tracing_in_one_weekend::hittable_list::HittableList;
 use ray_tracing_in_one_weekend::material::{Dielectric, Lambertian, Metal};
@@ -36,16 +36,7 @@ struct ThreadResult {
     thread_index: u32,
 }
 
-fn main() {
-    const THREADS: u32 = 8;
-    let mut image_parts = (0..THREADS)
-        .into_iter()
-        .map(|_| String::new())
-        .collect::<Vec<String>>();
-    let (tx, rx) = mpsc::channel();
-    let mut handles = vec![];
-
-    // World
+fn scene_default_camera(aspect_ratio: f64) -> (HittableList, Camera) {
     let mut world = HittableList::new();
 
     let material_ground = Arc::new(Lambertian::new(Vec3::new(0.8, 0.8, 0.0)));
@@ -64,7 +55,12 @@ fn main() {
     )));
     world.add(Arc::new(Sphere::new(
         Vec3::new(-1., 0., -1.),
-        -0.4,
+        0.5,
+        material_left.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Vec3::new(-1., 0., -1.),
+        -0.45,
         material_left,
     )));
     world.add(Arc::new(Sphere::new(
@@ -72,20 +68,75 @@ fn main() {
         0.5,
         material_right,
     )));
-    let world = Arc::new(world.clone());
+    let lookfrom = Vec3::new(3., 3., 2.);
+    let lookat = Vec3::new(0., 0., -1.);
+    let vup = Vec3::new(0., 1., 0.);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
 
-    // Camera
 
-    let camera = Camera::new();
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        vup,
+        20.,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+    );
+    return (world, camera);
+}
+
+// fn scene_wide_angle_camera(aspect_ratio: f64) -> (HittableList, Camera) {
+//     let r: f64 = (std::f64::consts::PI / 4.0).cos();
+//     let mut world = HittableList::new();
+
+//     let material_left = Arc::new(Lambertian::new(Vec3::new(1., 0., 0.)));
+//     let material_right = Arc::new(Lambertian::new(Vec3::new(0., 0., 1.)));
+
+//     world.add(Arc::new(Sphere::new(
+//         Vec3::new(-r, 0., -1.),
+//         r,
+//         material_left,
+//     )));
+//     world.add(Arc::new(Sphere::new(
+//         Vec3::new(r, 0., -1.),
+//         r,
+//         material_right,
+//     )));
+//     let camera = Camera::new(
+//         Vec3::new(-2., 2., 1.),
+//         Vec3::new(0., 0., 0.),
+//         Vec3::new(0., 0., -1.),
+//         90.,
+//         aspect_ratio,
+//     );
+//     return (world, camera);
+// }
+
+fn main() {
+    const THREADS: u32 = 8;
+    let mut image_parts = (0..THREADS)
+        .into_iter()
+        .map(|_| String::new())
+        .collect::<Vec<String>>();
+    let (tx, rx) = mpsc::channel();
+    let mut handles = vec![];
 
     // Image
     // TODO: remove duplicate ASPECT_RATIO here and in the camera
-    const ASPECT_RATIO: f64 = 16.0 / 9.0;
+    const ASPECT_RATIO: f64 = 3. / 2.;
 
-    const IMAGE_WIDTH: u32 = 1080 / 4;
+    const IMAGE_WIDTH: u32 = 1200 / 4;
     const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 100;
+    const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPHT: i32 = 50;
+
+    // World
+
+    let (world, camera) = scene_default_camera(ASPECT_RATIO);
+
+    let world = Arc::new(world.clone());
 
     let m = MultiProgress::new();
     let style =
