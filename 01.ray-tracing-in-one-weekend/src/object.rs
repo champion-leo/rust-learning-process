@@ -87,7 +87,8 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod sphere_tests {
-    use crate::material::Lambertian;
+
+    use crate::material::lambertian::Lambertian;
 
     use super::*;
 

@@ -9,7 +9,6 @@ pub struct Camera {
     vertical: Vec3,
     u: Vec3,
     v: Vec3,
-    w: Vec3,
     lens_radius: f64,
 }
 
@@ -32,8 +31,6 @@ impl Camera {
         let u = unit_vector(cross(vup, w));
         let v = cross(w, u);
 
-        // Here I can't use const because my operators overloading are not const compatible
-        // there might be a way to do it but I don't know it yet...
         let origin = lookfrom;
         let horizontal: Vec3 = focus_dist * viewport_width * u;
         let vertical: Vec3 = focus_dist * viewport_height * v;
@@ -46,7 +43,7 @@ impl Camera {
             horizontal,
             vertical,
             lower_left_corner,
-            u, v, w, lens_radius,
+            u, v, lens_radius,
         }
     }
 

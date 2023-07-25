@@ -1,4 +1,4 @@
-use crate::helper::{clamp, random, random_range};
+use crate::helper::{random, random_range};
 
 use std::ops;
 
@@ -678,9 +678,9 @@ pub fn get_color_str(pixel_color: Vec3, samples_per_pixel: u32) -> String {
     let g = (g * scale).sqrt();
     let b = (b * scale).sqrt();
 
-    let ir: u32 = (255.999 * clamp(r, 0.0, 0.999)) as u32;
-    let ig: u32 = (255.999 * clamp(g, 0.0, 0.999)) as u32;
-    let ib: u32 = (255.999 * clamp(b, 0.0, 0.999)) as u32;
+    let ir: u32 = (255.999 * r.clamp(0.0, 0.999)) as u32;
+    let ig: u32 = (255.999 * g.clamp(0.0, 0.999)) as u32;
+    let ib: u32 = (255.999 * b.clamp( 0.0, 0.999)) as u32;
     format!("{ir} {ig} {ib}\n")
 }
 

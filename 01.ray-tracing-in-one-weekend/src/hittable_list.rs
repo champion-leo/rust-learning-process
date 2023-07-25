@@ -41,9 +41,9 @@ impl Hittable for HittableList {
 }
 
 #[cfg(test)]
-mod hittable_list_test {
+mod hittable_list {
     use super::*;
-    use crate::{material::Lambertian, object::Sphere, vec3::Vec3};
+    use crate::{object::Sphere, vec3::Vec3, material::lambertian::Lambertian};
 
     #[test]
     fn test_new() {
